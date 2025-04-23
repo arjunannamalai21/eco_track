@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoTrack</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #90ee90; }
+        nav a { margin: 0 10px; text-decoration: none; color: black; }
+        .content { padding: 20px; }
+        .card { background-color: #d3d3d3; padding: 20px; text-align: center; margin-bottom: 20px; }
+        .button { background-color: #90ee90; padding: 10px 20px; border: none; cursor: pointer; }
+        .circle { position: relative; width: 150px; height: 150px; border-radius: 50%; border: 10px solid #90ee90; display: flex; justify-content: center; align-items: center; margin: 0 auto; }
+        .circle span { position: absolute; text-align: center; }
+        .graph { text-align: center; margin: 20px 0; }
+        .tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .tip-card { background-color: #d4d3d3; padding: 20px; text-align: center; }
+        .card a { margin: 0 10px; text-decoration: none; color: black; }
+        footer { background-color: #90ee90; text-align: center; padding: 10px; margin-top: 20px; }
+        .warning { color: yellow; font-size: 24px; }
+        button a { margin: 0 10px; text-decoration: none; color: black; }
+        .h3circle { position: relative;  display: flex; justify-content: center; align-items: center; margin: 0 auto; }
+
+        
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2yemyfmu0vtYSyBJfiU0t6o7-XmDcjsQ",
+            authDomain: "ecotrack-4304a.firebaseapp.com",
+            projectId: "ecotrack-4304a",
+            storageBucket: "ecotrack-4304a.appspot.com",
+            messagingSenderId: "495873124984",
+            appId: "1:495873124984:web:17c346880fc3b7366fdb8d",
+            measurementId: "G-T3E7WRXHVR"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.saveData = async () => {
+            const formData = {
+                carPetrol: document.getElementById('carPetrol').value,
+                carDiesel: document.getElementById('carDiesel').value,
+                bus: document.getElementById('bus').value,
+                train: document.getElementById('train').value,
+                bicycleWalking: document.getElementById('bicycleWalking').value,
+                diet: document.getElementById('diet').value,
+                aproxquantityconsumed: document.getElementById('aproxquantityconsumed').value,
+                electricity: document.getElementById('electricity').value,
+                gas: document.getElementById('gas').value,
+                solar: document.getElementById('solar').value
+            };
+
+            try {
+                await addDoc(collection(db, "carbon_footprints"), formData);
+                console.log("Data saved successfully:", formData);
+            } catch (e) {
+                console.error("Error saving data:", e);
+            }
+        };
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            const emissionCircle = document.getElementById('emissionCircle');
+            const emissionValue = document.getElementById('emissionValue');
+            const warning = document.getElementById('warning');
+
+            try {
+                const querySnapshot = await getDocs(collection(db, 'carbon_footprints'));
+                let totalEmissions = 0;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    console.log("Fetched data:", data);
+
+                    const transport =
+                        (parseFloat(data.carPetrol) || 0) * 0.192 +
+                        (parseFloat(data.carDiesel) || 0) * 0.171 +
+                        (parseFloat(data.bus) || 0) * 0.089 +
+                        (parseFloat(data.train) || 0) * 0.041;
+
+                    const energy =
+                        (parseFloat(data.electricity) || 0) * 0.475 +
+                        (parseFloat(data.gas) || 0) * 0.185;
+
+                    totalEmissions += transport + energy;
+                });
+
+                console.log("Total Emissions:", totalEmissions);
+
+                emissionValue.textContent = `${totalEmissions.toFixed(2)}KG/208KG`;
+                const percentage = (totalEmissions / 208) * 100;
+
+                if (percentage <= 50) {
+                    emissionCircle.style.borderColor = '#32CD32';
+                } else if (percentage <= 80) {
+                    emissionCircle.style.borderColor = '#FFA500';
+                } else {
+                    emissionCircle.style.borderColor = '#FF0000';
+                }
+
+                warning.innerHTML = percentage > 100 ? '⚠️ Over Limit!' : '⚠️ Over Limit!';
+            } catch (e) {
+                console.error("Error fetching data:", e);
+            }
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <div>
+            <img src="img/logo.png" alt="EcoTrack Logo" style="height: 40px; vertical-align: middle;">
+            <strong>EcoTrack</strong>
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="Aboutus.html">About</a>
+            <a href="Howitworks.html">How It Works</a>
+            <a href="Tips.html">Tips to Reduce Emissions</a>
+        </nav>
+        <div><img src="img/Profile.png" alt="Profile image"></div>
+    </header>
+
+    <div class="content">
+        <div class="card">
+            <p>Hurry up to add records and save nature</p>
+            <button class="button"><a href="inputdata.html">Add Today's record</a></button>
+        </div>
+        <div class="h3circle">
+        <h3>Per Month</h3>
+        </div>
+        <div class="circle" id="emissionCircle">
+           
+            <span id="emissionValue">0KG/208KG</span>
+            
+        </div>
+        <div class="graph">
+            <h2>Your Past Records</h2>
+            <button class="button"><a href="graph.html">View graph</a></button>
+        </div>
+
+        <h2>Tips to reduce emission</h2>
+        <div class="tips">
+            <div class="tip-card">Use Public Transport: Buses, trains, and carpools reduce individual emissions.</div>
+            <div class="tip-card">Switch to Renewable Energy: Choose solar, wind, or hydro-powered energy if available.</div>
+            <div class="tip-card">Plant Trees & Create Green Spaces: Trees absorb CO₂ and promote biodiversity.</div>
+            <div class="tip-card">Buy Less, Choose Well: Opt for durable and high-quality products.</div>
+        </div>
+    </div>
+
+    <footer>
+        <strong>EcoTrack</strong>
+    </footer>
+</body>
+</html>

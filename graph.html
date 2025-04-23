@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Carbon Emission Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase App (Core SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <!-- Firebase Firestore SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { background-color: white; color: black; text-align: center; }
+        canvas { background-color: #333; margin-top: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #90ee90; }
+        nav a { margin: 0 10px; text-decoration: none; color: black; }
+        footer { background-color: #90ee90; text-align: center; padding: 10px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <img src="img/logo.png" alt="EcoTrack Logo" style="height: 40px; vertical-align: middle;">
+            <strong>EcoTrack</strong>
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="Aboutus.html">About</a>
+            <a href="Howitworks.html">How It Works</a>
+            <a href="Tips.html">Tips to Reduce Emissions</a>
+        </nav>
+        <div><img src="img/Profile.png" alt="Profile image"></div>
+    </header>
+
+    <h1>Carbon Emission Per Day</h1>
+    <canvas id="carbonLineChart" width="600" height="400"></canvas>
+
+    <script>
+        // ✅ Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2yemyfmu0vtYSyBJfiU0t6o7-XmDcjsQ",
+            authDomain: "ecotrack-4304a.firebaseapp.com",
+            projectId: "ecotrack-4304a",
+            storageBucket: "ecotrack-4304a.appspot.com",
+            messagingSenderId: "495873124984",
+            appId: "1:495873124984:web:17c346880fc3b7366fdb8d",
+            measurementId: "G-T3E7WRXHVR"
+        };
+
+        // ✅ Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Emission Factors
+        const emissionFactors = {
+            carPetrol: 0.192,
+            carDiesel: 0.171,
+            bus: 0.089,
+            train: 0.041,
+            bicycleWalking: 0,
+            electricity: 0.475,
+            gas: 0.185,
+            solar: 0
+        };
+
+        let carbonLineChart;
+
+        // ✅ Fetch Data & Create Line Chart
+        function fetchDataAndRenderChart() {
+            db.collection("carbon_footprints").get().then((querySnapshot) => {
+                const dayLabels = [];
+                const dayEmissions = [];
+
+                let dayCounter = 1;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    let totalEmission = 0;
+
+                    // Calculate total emissions for each document
+                    totalEmission += (data.carPetrol || 0) * emissionFactors.carPetrol;
+                    totalEmission += (data.carDiesel || 0) * emissionFactors.carDiesel;
+                    totalEmission += (data.bus || 0) * emissionFactors.bus;
+                    totalEmission += (data.train || 0) * emissionFactors.train;
+                    totalEmission += (data.bicycleWalking || 0) * emissionFactors.bicycleWalking;
+                    totalEmission += (data.electricity || 0) * emissionFactors.electricity;
+                    totalEmission += (data.gas || 0) * emissionFactors.gas;
+                    totalEmission += (data.solar || 0) * emissionFactors.solar;
+
+                    dayLabels.push(`Day ${dayCounter}`);
+                    dayEmissions.push(totalEmission.toFixed(2)); // Rounded to 2 decimal places
+                    dayCounter++;
+                });
+
+                // Destroy existing chart if exists
+                if (carbonLineChart) carbonLineChart.destroy();
+
+                const ctx = document.getElementById('carbonLineChart').getContext('2d');
+                carbonLineChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dayLabels,
+                        datasets: [{
+                            label: 'Total CO2 Emissions (kg)',
+                            data: dayEmissions,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: '#1f77b4',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#1f77b4',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { labels: { color: 'white' } },
+                            
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: 'white' },
+                                title: {
+                                    display: true,
+                                    text: 'CO2 Emissions (kg)',
+                                    color: 'white'
+                                }
+                            },
+                            x: { ticks: { color: 'white' } }
+                        }
+                    }
+                });
+            }).catch((error) => {
+                console.error("Error fetching data: ", error);
+            });
+        }
+
+        // Initial Fetch
+        fetchDataAndRenderChart();
+
+        // ✅ Real-Time Update on Firestore Changes
+        db.collection("carbon_footprints").onSnapshot(() => {
+            fetchDataAndRenderChart();
+        });
+    </script>
+    <footer>
+        <strong>EcoTrack</strong>
+    </footer>
+</body>
+</html>
+

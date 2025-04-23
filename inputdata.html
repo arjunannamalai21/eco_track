@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Footprint Calculator</title>
+    <script type="module">
+        // Import Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // Your Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyB2yemyfmu0vtYSyBJfiU0t6o7-XmDcjsQ",
+  authDomain: "ecotrack-4304a.firebaseapp.com",
+  projectId: "ecotrack-4304a",
+  storageBucket: "ecotrack-4304a.firebasestorage.app",
+  messagingSenderId: "495873124984",
+  appId: "1:495873124984:web:17c346880fc3b7366fdb8d",
+  measurementId: "G-T3E7WRXHVR"
+};
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to save form data
+        window.saveData = async () => {
+            const formData = {
+                carPetrol: document.getElementById('carPetrol').value,
+                carDiesel: document.getElementById('carDiesel').value,
+                bus: document.getElementById('bus').value,
+                train: document.getElementById('train').value,
+                bicycleWalking: document.getElementById('bicycleWalking').value,             
+                electricity: document.getElementById('electricity').value,
+                gas: document.getElementById('gas').value,
+                solar: document.getElementById('solar').value
+            };
+
+            try {
+                await addDoc(collection(db, "carbon_footprints"), formData);
+                alert("Data saved successfully!");
+            } catch (e) {
+                alert("Error adding document: " + e);
+            }
+        }
+    </script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #90ee90; }
+        nav a { margin: 0 10px; text-decoration: none; color: black; }
+        .container { max-width: 600px; margin: auto; background: #90ee90; padding: 20px; border-radius: 8px; }
+        h1 { text-align: center; }
+        label { display: block; margin-top: 10px; }
+        input, select, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc; }
+        button { background-color: #28a745; color: white; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        footer { background-color: #90ee90; text-align: center; padding: 10px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <img src="img/logo.png" alt="EcoTrack Logo" style="height: 40px; vertical-align: middle;">
+            <strong>EcoTrack</strong>
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="Aboutus.html">About</a>
+            <a href="Howitworks.html">How It Works</a>
+            <a href="Tips.html">Tips to Reduce Emissions</a>
+        </nav>
+        <div><img src="img/Profile.png" alt="Profile image"></div>
+    </header>
+
+    <br>
+    
+    <div class="container">
+        <h1>Carbon Footprint Calculator</h1>
+        <form id="carbonForm">
+            <label for="carPetrol">Kilometers by Car (Petrol):</label>
+            <input type="number" id="carPetrol">
+            
+            <label for="carDiesel">Kilometers by Car (Diesel):</label>
+            <input type="number" id="carDiesel">
+            
+            <label for="bus">Kilometers by Bus:</label>
+            <input type="number" id="bus">
+            
+            <label for="train">Kilometers by Train:</label>
+            <input type="number" id="train">
+            
+            <label for="bicycleWalking">Kilometers by Bicycle/Walking:</label>
+            <input type="number" id="bicycleWalking">
+            
+            <label for="electricity">Electricity Usage (kWh):</label>
+            <input type="number" id="electricity">
+            
+            <label for="gas">Gas Usage (cubic meters):</label>
+            <input type="number" id="gas">
+            
+            <label for="solar">Solar Energy Used (kWh):</label>
+            <input type="number" id="solar">
+            
+            <button type="button" onclick="saveData()">Save</button>
+        </form>
+    </div>
+
+    <footer>
+        <strong>EcoTrack</strong>
+    </footer>
+</body>
+</html>
+
+
